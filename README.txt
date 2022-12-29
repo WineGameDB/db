@@ -5,11 +5,13 @@ WineGameDB documentation:
     "id":                WineGameDB-internal game id
     "internal_name":     The internal name of the game (Epic: AppName, GOG: Game ID)
     "title":             The actual title of the game as it's shown on the storefront
-    "store":             The storefront the game was obtained at. Used for differentiating between different versions
+    "store":             The storefront the game was obtained at. Used for differentiating between different versions. May be "Epic" or "GOG"
     "status":            Playability rating of the game:
                           - 0: Does not work
-                          - 1: Works OOTB (most recent Wine!)
-                          - 2: Works with fixes
+                          - 1: Works OOTB. Note that this assumes
+                              (1) the game is running in a clean prefix and
+                              (2) you're using the latest version of Wine-GE to run the game
+                          - 2: Works with workarounds
                           - 3: Main game works, some content (multiplayer) is inaccessible
                           - 4: Unknown
   Optional fields:
@@ -21,28 +23,28 @@ WineGameDB documentation:
                          playability rating if condition2 is true
                          ```
 
-"fixes" table:
+"workarounds" table:
   Required fields:
-    "id":                WineGameDB-internal fix id
-    "title":             The fix's title (in your launcher this could be used to display what's currently being done)
+    "id":                WineGameDB-internal workaround id
+    "title":             The workaround's title (in your launcher this could be used to display what's currently being done)
   Optional fields:
-    "arg_titles":        If the fix takes arguments, these are the titles. Separated by newline characters (\n)
+    "arg_titles":        If the workaround takes arguments, these are the titles. Separated by newline characters (\n)
 
-"games_fixes" table:
-Joins together games and fixes. Iterate over this with your game_id, find all fixes that are listed for it, and run them
+"games_workarounds" table:
+Joins together games and workarounds. Iterate over this with your game_id, find all workarounds that are listed for it, and run them
   Required fields:
-    "game_id":           The Game ID the fix is for
-    "fix_id":            The fix that should be applied
+    "game_id":           The Game ID the workaround is for
+    "workaround_id":     The workaround that should be applied
     "is_optional":       If the main game works without this, but extra features/functionality is added, this will be true
-    "is_conditional":    If the fix is only required in certain scenarios, this will be true
+    "is_conditional":    If the workaround is only required in certain scenarios, this will be true
   Optional fields:
-    "args":              The arguments supplied to the fix (again separated with \n)
-    "optional_feature":  If the fix is optional, this will describe what's added by running it
-    "condition":         The condition(s) required for the fix (also separated with \n)
+    "args":              The arguments supplied to the workaround (again separated with \n)
+    "optional_feature":  If the workaround is optional, this will describe what's added by running it
+    "conditions":        The condition(s) required for the workaround (also separated with \n)
 
 
-Documentation on specific fixes:
-It is up to your launcher to actually do the work of running a fix, this is only a written guide for you to implement:
+Documentation on specific workarounds:
+It is up to your launcher to actually do the work of running a workaround, this is only a written guide for you to implement:
  - "override_exe"
    Launch a different executable to the one defined in the game's metadata. The path will be relative to the game's installation folder
  - "start_params"
@@ -81,20 +83,24 @@ It is up to your launcher to actually do the work of running a fix, this is only
  - "vcruntime"
    MS Visual C++ Runtime
    Obtain the installers (https://docs.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170#visual-studio-2015-2017-2019-and-2022) and run them (optionally with the /silent argument)
-   Note: Both the x64 and x86 installers may be required
+   Note: Install both the x64 and x86 installers
  - "dxvk"
    doitsujin's DXVK (https://github.com/doitsujin/dxvk)
-   Download the latest release and either run the setup or perform what it does yourself
+   Arg: `version` (version of DXVK to install, may be empty to mean "latest")
+   Download the release and either run the setup or perform what it does yourself
  - "vkd3d"
    HansKristian-Work's VKD3D-Proton (https://github.com/HansKristian-Work/vkd3d-proton)
-   Download the latest release and either run the setup or perform what it does yourself
- - "mf_install"
-   z0z0z's mf-install (https://github.com/z0z0z/mf-install/)
-   Clone the repository and run mf-install.sh / replicate its behavior
+   Arg: `version` (version of VKD3D to install, may be empty to mean "latest")
+   Download the release and either run the setup or perform what it does yourself
+ - "custom_wine"
+   Use a custom Wine version (instead of latest Wine-Staging)
+   Arguments:
+    - name:    `wine-staging`, `wine-ge` or `wine_lutris`
+    - version: Specific version to use (tagname of GH release). May be empty to mean "latest"
 
 
 Variables:
-Some fixes will have special variables that change based on the system configuration. They are indicated by a $ (e.g."$SCREEN_WIDTH")
+Some workarounds will have special variables that change based on the system configuration. They are indicated by a $ (e.g."$SCREEN_WIDTH")
  - "SCREEN_WIDTH"
    The horizontal resolution of the user's main monitor (in pixels, e.g. 1920)
  - "SCREEN_HEIGHT"
